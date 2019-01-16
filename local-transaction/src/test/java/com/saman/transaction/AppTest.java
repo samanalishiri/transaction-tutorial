@@ -112,7 +112,6 @@ public class AppTest {
         DataModel model1AfterPersist = repository.findByCode("code_5");
 
         Assert.assertEquals(model1AfterPersist.getId(), 0);
-
     }
 
     @Test

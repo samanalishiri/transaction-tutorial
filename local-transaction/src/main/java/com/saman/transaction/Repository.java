@@ -31,10 +31,10 @@ public class Repository {
             connection.setAutoCommit(false);
             Arrays.stream(consumer).forEach(c -> c.accept(connection));
             connection.commit();
-            logger.info("commit transaction, " + Thread.currentThread().getName());
+            logger.info("commit transaction");
 
         } catch (SQLException e) {
-            logger.info("rollback transaction, " + Thread.currentThread().getName());
+            logger.error("rollback transaction");
             connection.rollback();
             throw e;
 
@@ -62,7 +62,7 @@ public class Repository {
             return transformer.transform(data);
 
         } catch (SQLException e) {
-            logger.info(e.getMessage());
+            logger.error("can't find DataModel{id=" + id + "}");
         }
 
         return new DataModel();
@@ -89,7 +89,7 @@ public class Repository {
             }
 
         } catch (SQLException e) {
-            logger.info(e.getMessage());
+            logger.error("can't find DataModel{code=" + code + "}");
         }
 
         return new DataModel();
@@ -113,6 +113,7 @@ public class Repository {
 
         } catch (SQLException e) {
             logger.error("can't execute statement");
+            logger.error(e.getMessage());
             throw new RuntimeException(e);
 
         } finally {
@@ -131,6 +132,7 @@ public class Repository {
 
         } catch (SQLException e) {
             logger.error("can't execute statement");
+            logger.error(e.getMessage());
             throw new RuntimeException(e);
 
         } finally {
