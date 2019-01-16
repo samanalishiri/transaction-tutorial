@@ -8,7 +8,7 @@ public class DataModel {
     public static final int CODE_INDEX = 2;
     public static final int NAME_INDEX = 3;
 
-    private int id;
+    private int id = 0;
     private String code;
     private String name;
 
@@ -19,6 +19,13 @@ public class DataModel {
     public static DataModel create(int id, String code, String name){
         DataModel model = new DataModel();
         model.setId(id);
+        model.setCode(code);
+        model.setName(name);
+        return model;
+    }
+
+    public static DataModel create(String code, String name){
+        DataModel model = new DataModel();
         model.setCode(code);
         model.setName(name);
         return model;

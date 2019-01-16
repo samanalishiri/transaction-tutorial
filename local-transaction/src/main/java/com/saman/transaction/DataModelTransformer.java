@@ -22,7 +22,6 @@ public class DataModelTransformer implements Transformer<DataModel> {
         DataModel model = new DataModel();
 
         try {
-            data.next();
             model.setId(data.getInt(ID_INDEX));
             model.setCode(data.getString(CODE_INDEX));
             model.setName(data.getString(NAME_INDEX));

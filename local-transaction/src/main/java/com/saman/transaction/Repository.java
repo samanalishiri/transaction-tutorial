@@ -25,7 +25,7 @@ public class Repository {
     private Repository() {
     }
 
-    public void updateBatch(Connection connection, Consumer<Connection>... consumer) throws SQLException {
+    public void batch(Connection connection, Consumer<Connection>... consumer) throws SQLException {
 
         try {
             connection.setAutoCommit(false);
@@ -68,6 +68,33 @@ public class Repository {
         return new DataModel();
     }
 
+    public DataModel findByCode(String code) {
+
+        Connection connection = DataSourceHelper.INSTANCE.get();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT \n" +
+                            "    *\n" +
+                            "FROM\n" +
+                            "    transaction.local_transaction_test tbl\n" +
+                            "WHERE\n" +
+                            "    tbl.code = ?");
+
+            statement.setString(1, code);
+            ResultSet data = statement.executeQuery();
+
+            if(data.next()) {
+                return transformer.transform(data);
+            }
+
+        } catch (SQLException e) {
+            logger.info(e.getMessage());
+        }
+
+        return new DataModel();
+    }
+
     public void update(Connection connection, DataModel model) {
         PreparedStatement statement = null;
         try {
@@ -89,16 +116,38 @@ public class Repository {
             throw new RuntimeException(e);
 
         } finally {
-            try {
-                if (Objects.nonNull(statement)) {
-                    statement.close();
-                }
+            closeStatement(statement);
+        }
+    }
 
-            } catch (SQLException e) {
-                logger.error("can't close statement");
-                throw new RuntimeException(e);
+    public void save(Connection connection, DataModel model) {
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement("INSERT INTO local_transaction_test (code, name) values (?, ?)");
+
+            statement.setString(1, model.getCode());
+            statement.setString(2, model.getName());
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            logger.error("can't execute statement");
+            throw new RuntimeException(e);
+
+        } finally {
+            closeStatement(statement);
+
+        }
+    }
+
+    private void closeStatement(PreparedStatement statement) {
+        try {
+            if (Objects.nonNull(statement)) {
+                statement.close();
             }
 
+        } catch (SQLException e) {
+            logger.error("can't close statement");
+            throw new RuntimeException(e);
         }
     }
 }

@@ -8,5 +8,5 @@ import java.sql.ResultSet;
  */
 public interface Transformer<T> {
 
-    public T transform(ResultSet data);
+    T transform(ResultSet data);
 }

@@ -52,7 +52,7 @@ public class AppTest {
         Connection connection = DataSourceHelper.INSTANCE.get();
 
         try {
-            repository.updateBatch(connection,
+            repository.batch(connection,
                     c -> repository.update(c, model1),
                     c -> repository.update(c, model2)
             );
@@ -76,7 +76,7 @@ public class AppTest {
         Connection connection = DataSourceHelper.INSTANCE.get();
 
         try {
-            repository.updateBatch(connection,
+            repository.batch(connection,
                     c -> repository.update(c, model),
                     c -> {
                         throw new RuntimeException();
@@ -95,6 +95,24 @@ public class AppTest {
 
     @Test
     public void consistencyTest() throws SQLException {
+        DataModel model1 = DataModel.create("code_5", "name_5");
+        DataModel model2 = DataModel.create("code_2", "name_2");
+
+        Connection connection = DataSourceHelper.INSTANCE.get();
+
+        try {
+            repository.batch(connection,
+                    c -> repository.save(c, model1),
+                    c -> repository.save(c, model2)
+            );
+        } catch (RuntimeException e) {
+            logger.error("there was an error in transaction");
+        }
+
+        DataModel model1AfterPersist = repository.findByCode("code_5");
+
+        Assert.assertEquals(model1AfterPersist.getId(), 0);
+
     }
 
     @Test
