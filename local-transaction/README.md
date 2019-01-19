@@ -11,13 +11,13 @@ The developer manages connection, not transaction.it is the DBMS or JMS Provider
     CREATE SCHEMA `transaction` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
     
     CREATE TABLE local_transaction_test (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        code VARCHAR(255) unique,
-        name VARCHAR(255) unique
+        id INT PRIMARY KEY,
+        code VARCHAR(255) UNIQUE,
+        name VARCHAR(255) UNIQUE
     );
-    insert into local_transaction_test (code, name) values('code_1', 'name_1');
-    insert into local_transaction_test (code, name) values('code_2', 'name_2');
-    insert into local_transaction_test (code, name) values('code_3', 'name_3');
+    insert into local_transaction_test (id, code, name) values(1, 'code_1', 'name_1');
+    insert into local_transaction_test (id, code, name) values(2, 'code_2', 'name_2');
+    insert into local_transaction_test (id, code, name) values(3, 'code_3', 'name_3');
     commit;
 
 ### Build
