@@ -20,7 +20,6 @@ public class AcidTest {
     private final Logger logger = LoggerFactory.getLogger("AppTest");
 
     private Repository repository = Repository.INSTANCE;
-    private SynchronizedRepository synchronizedRepository = SynchronizedRepository.INSTANCE;
 
     @Before
     public void setUp() throws Exception {
@@ -110,14 +109,14 @@ public class AcidTest {
             repository.parallelBatch(connection,
                     c -> {
                         try {
-                            synchronizedRepository.updateWithCommit(c, model1);
+                            repository.synchronizedUpdateWithCommit(c, model1);
                         } catch (SQLException e) {
                             logger.error("there was an error in update model-1");
                         }
                     },
                     c -> {
                         try {
-                            synchronizedRepository.updateWithCommit(c, model2);
+                            repository.synchronizedUpdateWithCommit(c, model2);
                         } catch (SQLException e) {
                             logger.error("there was an error in update model-2");
                         }

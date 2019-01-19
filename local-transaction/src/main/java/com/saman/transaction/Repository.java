@@ -214,6 +214,46 @@ public class Repository {
         }
     }
 
+    public synchronized void synchronizedUpdate(Connection connection, DataModel model) {
+        this.update(connection, model);
+    }
+
+    public synchronized void synchronizedSave(Connection connection, DataModel model) {
+        this.save(connection, model);
+    }
+
+    public synchronized void synchronizedUpdateWithCommit(Connection connection, DataModel model) throws SQLException {
+
+        try {
+            this.update(connection, model);
+            connection.commit();
+            logger.info("commit transaction");
+
+        } catch (SQLException e) {
+            logger.error("rollback transaction");
+            logger.error(e.getMessage());
+            connection.rollback();
+            throw e;
+
+        }
+    }
+
+    public synchronized void synchronizedSaveWithCommit(Connection connection, DataModel model) throws SQLException {
+
+        try {
+            this.save(connection, model);
+            connection.commit();
+            logger.info("commit transaction");
+
+        } catch (SQLException e) {
+            logger.error("rollback transaction");
+            logger.error(e.getMessage());
+            connection.rollback();
+            throw e;
+
+        }
+    }
+
     private void closeStatement(PreparedStatement statement) {
         try {
             if (Objects.nonNull(statement)) {
