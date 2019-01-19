@@ -31,23 +31,30 @@ public class AcidTest {
     @Test
     public void atomicityCommitTest() throws SQLException {
         DataModel model1 = DataModel.create(1, "code_5", "name_5");
-        DataModel model2 = DataModel.create(1, "code_6", "name_6");
+        DataModel model2 = DataModel.create(2, "code_6", "name_6");
 
         Connection connection = DataSourceHelper.INSTANCE.get();
 
         try {
             repository.batch(connection,
-                    c -> repository.update(c, model1),
-                    c -> repository.update(c, model2)
+                    c -> {
+                        repository.update(c, model1);
+                        repository.findById(1);
+                    },
+                    c -> {
+                        repository.update(c, model2);
+                        repository.findById(2);
+                    }
             );
         } catch (RuntimeException e) {
             logger.error("there was an error in transaction");
         }
 
-        DataModel updatedModel = repository.findById(model1.getId());
+        DataModel updatedModel1 = repository.findById(1);
+        DataModel updatedModel2 = repository.findById(2);
 
-        Assert.assertNotEquals(model1, updatedModel);
-        Assert.assertEquals(model2, updatedModel);
+        Assert.assertEquals(model1, updatedModel1);
+        Assert.assertEquals(model2, updatedModel2);
     }
 
     @Test
@@ -101,22 +108,51 @@ public class AcidTest {
 
         try {
             repository.parallelBatch(connection,
-                    c -> synchronizedRepository.update(c, model1),
-                    c -> synchronizedRepository.update(c, model2)
+                    c -> {
+                        synchronizedRepository.findById(1);
+                        try {
+                            synchronizedRepository.updateWithCommit(c, model1);
+                        } catch (SQLException e) {
+                            logger.error("there was an error in update model-1");
+                        }
+                    },
+                    c -> {
+                        synchronizedRepository.findById(1);
+                        try {
+                            synchronizedRepository.updateWithCommit(c, model2);
+                        } catch (SQLException e) {
+                            logger.error("there was an error in update model-2");
+                        }
+                    }
             );
         } catch (RuntimeException e) {
             logger.error("there was an error in transaction");
         }
 
-        DataModel updatedModel = repository.findById(model1.getId());
-
-        Assert.assertNotEquals(model1, updatedModel);
-        Assert.assertEquals(model2, updatedModel);
-
+        repository.findById(model1.getId());
     }
 
     @Test
     public void durationTest() throws SQLException {
+        DataModel model = DataModel.create(1, "code_5", "name_5");
+
+        Connection connection = DataSourceHelper.INSTANCE.get();
+
+        try {
+            repository.batch(connection, c -> repository.update(c, model));
+
+        } catch (RuntimeException e) {
+            logger.error("there was an error in transaction");
+        }
+
+        try {
+            throw new RuntimeException("system shutdown!!!");
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+        }
+
+        DataModel updatedModel = repository.findById(1);
+        Assert.assertEquals(model, updatedModel);
     }
 
 

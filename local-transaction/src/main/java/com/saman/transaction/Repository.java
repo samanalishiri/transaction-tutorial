@@ -20,7 +20,7 @@ public class Repository {
 
     public static final Repository INSTANCE = new Repository();
 
-    private final Logger logger = LoggerFactory.getLogger("Repository");
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     private final Transformer<DataModel> transformer = new DataModelTransformer();
 
