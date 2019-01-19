@@ -5,6 +5,7 @@
     <persistence-unit name="transactionSample" transaction-type="JTA">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>jdbc/transactionSample</jta-data-source>
+        <class>com.saman.tutorial.transaction.DataModel</class>
         <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
         <validation-mode>CALLBACK</validation-mode>
         <properties>
