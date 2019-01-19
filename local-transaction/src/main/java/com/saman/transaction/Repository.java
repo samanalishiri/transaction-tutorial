@@ -45,6 +45,52 @@ public class Repository {
         connection.close();
     }
 
+    public void trunk() {
+        Connection connection = DataSourceHelper.INSTANCE.get();
+
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement("DELETE FROM local_transaction_test WHERE id in (1, 2, 3)");
+            statement.execute();
+            logger.info("delete {1, 2, 3}");
+
+        } catch (SQLException e) {
+            logger.error("can't execute trunk table");
+            logger.error(e.getMessage());
+            throw new RuntimeException(e);
+
+        } finally {
+            closeStatement(statement);
+        }
+    }
+
+    public int countAll() {
+        Connection connection = DataSourceHelper.INSTANCE.get();
+
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement("SELECT COUNT(ID) AS count_id FROM local_transaction_test tbl");
+            ResultSet data = statement.executeQuery();
+
+            if (data.next()) {
+                int count_id = data.getInt("count_id");
+                logger.info("count all");
+                return count_id;
+            }
+
+
+        } catch (SQLException e) {
+            logger.error("can't execute count statement");
+            logger.error(e.getMessage());
+            throw new RuntimeException(e);
+
+        } finally {
+            closeStatement(statement);
+        }
+
+        return 0;
+    }
+
     public void resetData() throws SQLException {
         Connection connection = DataSourceHelper.INSTANCE.get();
         connection.setAutoCommit(false);
@@ -203,6 +249,25 @@ public class Repository {
             statement.setString(3, model.getName());
             statement.executeUpdate();
             logger.info(model.toString());
+
+        } catch (SQLException e) {
+            logger.error("can't execute insert statement");
+            logger.error(e.getMessage());
+            throw new RuntimeException(e);
+
+        } finally {
+            closeStatement(statement);
+        }
+    }
+
+    public void deleteById(Connection connection, int id) {
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement("DELETE FROM local_transaction_test WHERE id = ?");
+
+            statement.setInt(1, id);
+            statement.execute();
+            logger.info("delete {" + id + "}");
 
         } catch (SQLException e) {
             logger.error("can't execute insert statement");
