@@ -109,7 +109,6 @@ public class AcidTest {
         try {
             repository.parallelBatch(connection,
                     c -> {
-                        synchronizedRepository.findById(1);
                         try {
                             synchronizedRepository.updateWithCommit(c, model1);
                         } catch (SQLException e) {
@@ -117,7 +116,6 @@ public class AcidTest {
                         }
                     },
                     c -> {
-                        synchronizedRepository.findById(1);
                         try {
                             synchronizedRepository.updateWithCommit(c, model2);
                         } catch (SQLException e) {
