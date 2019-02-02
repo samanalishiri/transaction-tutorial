@@ -5,5 +5,5 @@ import java.util.function.Consumer;
 
 public interface JpaBatchRepository {
 
-    void batch(EntityManager em, Consumer<EntityManager>... operations) throws Exception;
+    void batch(EntityManager em, Consumer<EntityManager>... operations) throws RuntimeException;
 }

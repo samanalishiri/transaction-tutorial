@@ -5,6 +5,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.List;
 
@@ -14,12 +15,12 @@ import static com.saman.tutorial.transaction.CriteriaUtils.createCriteriaQuery;
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
 @Stateless
-public class JpaCrudRepository implements CrudRepository {
+public class JpaRepositoryImpl implements Repository {
 
     @PersistenceContext(unitName = "transactiontutorial")
     private EntityManager em;
 
-    public JpaCrudRepository() {
+    public JpaRepositoryImpl() {
     }
 
     @Override
@@ -50,6 +51,14 @@ public class JpaCrudRepository implements CrudRepository {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void delete(Integer id) {
         em.remove(em.find(DataEntity.class, id));
+    }
+
+    @Override
+    public Long countAll() {
+        CriteriaBuilder qb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = qb.createQuery(Long.class);
+        cq.select(qb.count(cq.from(DataEntity.class)));
+        return em.createQuery(cq).getSingleResult();
     }
 
     @Override

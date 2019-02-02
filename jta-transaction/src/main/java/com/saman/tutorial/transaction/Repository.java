@@ -2,7 +2,7 @@ package com.saman.tutorial.transaction;
 
 import java.util.List;
 
-public interface CrudRepository {
+public interface Repository {
 
     Integer save(DataEntity e);
 
@@ -13,6 +13,8 @@ public interface CrudRepository {
     void update(DataEntity e);
 
     void delete(Integer id);
+
+    Long countAll();
 
     void truncate();
 

@@ -14,7 +14,7 @@ public class JpaBatchRepositoryImpl implements JpaBatchRepository {
     private final Logger logger = Logger.getLogger("JpaBatchRepositoryImpl");
 
     @Override
-    public void batch(EntityManager em, Consumer<EntityManager>... operations) throws Exception {
+    public void batch(EntityManager em, Consumer<EntityManager>... operations) throws RuntimeException {
 
         try {
             em.joinTransaction();
@@ -23,7 +23,8 @@ public class JpaBatchRepositoryImpl implements JpaBatchRepository {
 
         } catch (Exception e) {
             logger.info("rollback transaction");
-            throw e;
+            logger.info(e.getMessage());
+            throw new RuntimeException();
         }
     }
 }
