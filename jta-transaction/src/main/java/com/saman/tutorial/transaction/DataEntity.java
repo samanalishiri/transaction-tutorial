@@ -5,9 +5,12 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * @author Saman Alishiri, samanalishiri@gmail.com
+ */
 @Entity
 @Table(name = "jta_transaction_test", schema = "transaction")
-public class DataModel {
+public class DataEntity {
 
     @Id
     @Column(name = "id")
@@ -18,6 +21,17 @@ public class DataModel {
 
     @Column(name = "name")
     private String name;
+
+    public DataEntity() {
+    }
+
+    public static DataEntity create(int id, String code, String name) {
+        DataEntity model = new DataEntity();
+        model.setId(id);
+        model.setCode(code);
+        model.setName(name);
+        return model;
+    }
 
     public Integer getId() {
         return id;

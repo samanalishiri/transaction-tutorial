@@ -9,7 +9,7 @@ JTS—Java Transaction Service is a specification for building a transaction ser
 - maven 3
 
 ### create database
-    CREATE SCHEMA `transaction` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+    CREATE SCHEMA `transactiontutorial` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
     
     CREATE TABLE jta_transaction_test (
         id INT PRIMARY KEY,
