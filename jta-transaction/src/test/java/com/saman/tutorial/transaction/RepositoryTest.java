@@ -18,7 +18,7 @@ public class RepositoryTest {
     private final Logger logger = Logger.getLogger("RepositoryTest");
 
     @Inject
-    private IRepository userRepository;
+    private CrudRepository userRepository;
 
     @Deployment
     public static WebArchive createTestArchive() {

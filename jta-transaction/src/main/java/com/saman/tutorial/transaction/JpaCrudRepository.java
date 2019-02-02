@@ -14,12 +14,12 @@ import static com.saman.tutorial.transaction.CriteriaUtils.createCriteriaQuery;
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
 @Stateless
-public class Repository implements IRepository {
+public class JpaCrudRepository implements CrudRepository {
 
     @PersistenceContext(unitName = "transactiontutorial")
     private EntityManager em;
 
-    public Repository() {
+    public JpaCrudRepository() {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)

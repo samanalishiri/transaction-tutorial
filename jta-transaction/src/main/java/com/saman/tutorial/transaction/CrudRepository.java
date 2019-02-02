@@ -2,7 +2,7 @@ package com.saman.tutorial.transaction;
 
 import java.util.List;
 
-public interface IRepository {
+public interface CrudRepository {
 
     Integer save(DataEntity e);
 
