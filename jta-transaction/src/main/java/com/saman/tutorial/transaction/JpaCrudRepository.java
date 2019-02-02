@@ -40,9 +40,10 @@ public class JpaCrudRepository implements CrudRepository {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void update(DataEntity model) {
-        em.merge(model);
-        em.flush();
+    public void update(DataEntity e) {
+        DataEntity entity = em.find(DataEntity.class, e.getId());
+        entity.setCode(e.getCode());
+        entity.setName(e.getName());
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)

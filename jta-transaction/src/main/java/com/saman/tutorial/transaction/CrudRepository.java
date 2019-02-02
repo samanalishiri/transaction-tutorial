@@ -10,7 +10,7 @@ public interface CrudRepository {
 
     DataEntity findById(Integer id);
 
-    void update(DataEntity model);
+    void update(DataEntity e);
 
     void delete(Integer id);
 }

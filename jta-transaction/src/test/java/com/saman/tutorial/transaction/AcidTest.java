@@ -47,6 +47,7 @@ public class AcidTest {
                     logger.info(entity.toString());
                 }
         );
+
         DataEntity entity1 = em.find(DataEntity.class, 1);
         logger.info(entity1.toString());
         DataEntity entity2 = em.find(DataEntity.class, 2);
