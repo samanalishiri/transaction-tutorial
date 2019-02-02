@@ -8,7 +8,10 @@ The developer manages connection, not transaction.it is the DBMS or JMS Provider
 - maven 3
 
 ### create database
-    CREATE SCHEMA `transaction` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+    CREATE SCHEMA `transactiontutorial` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+   
+    ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';
+    commit;
     
     CREATE TABLE local_transaction_test (
         id INT PRIMARY KEY,

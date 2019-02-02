@@ -23,7 +23,6 @@ public class DatabaseTest {
     @Before
     public void setUp() throws Exception {
         Assert.assertNotNull(repository);
-        repository.initData();
     }
 
     @After

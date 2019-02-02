@@ -160,7 +160,7 @@ public class Repository {
                     "SELECT \n" +
                             "    *\n" +
                             "FROM\n" +
-                            "    transaction.local_transaction_test tbl\n" +
+                            "    local_transaction_test tbl\n" +
                             "WHERE\n" +
                             "    tbl.id = ?");
 
@@ -191,7 +191,7 @@ public class Repository {
                     "SELECT \n" +
                             "    *\n" +
                             "FROM\n" +
-                            "    transaction.local_transaction_test tbl\n" +
+                            "    local_transaction_test tbl\n" +
                             "WHERE\n" +
                             "    tbl.code = ?");
 

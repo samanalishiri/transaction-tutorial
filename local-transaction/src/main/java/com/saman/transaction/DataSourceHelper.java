@@ -18,9 +18,9 @@ public class DataSourceHelper {
     private final Logger logger = LoggerFactory.getLogger("DataSourceHelper");
 
     private final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-    private final String JDBC_DB_URL = "jdbc:mysql://localhost:3306/transaction";
+    private final String JDBC_DB_URL = "jdbc:mysql://localhost:3306/transactiontutorial";
     private final String JDBC_USER = "root";
-    private final String JDBC_PASS = null;
+    private final String JDBC_PASS = "root";
 
     private final BasicDataSource dataSource;
 
