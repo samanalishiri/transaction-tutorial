@@ -4,5 +4,6 @@ import javax.persistence.EntityManager;
 import java.util.function.Consumer;
 
 public interface JpaBatchRepository {
-    void batch(EntityManager em, Consumer<EntityManager>... operations);
+
+    void batch(EntityManager em, Consumer<EntityManager>... operations) throws Exception;
 }

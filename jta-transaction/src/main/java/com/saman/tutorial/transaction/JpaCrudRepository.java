@@ -22,8 +22,8 @@ public class JpaCrudRepository implements CrudRepository {
     public JpaCrudRepository() {
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public Integer save(DataEntity e) {
         em.persist(e);
         return e.getId();
@@ -46,10 +46,16 @@ public class JpaCrudRepository implements CrudRepository {
         entity.setName(e.getName());
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void delete(Integer id) {
         em.remove(em.find(DataEntity.class, id));
     }
 
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void truncate() {
+        List<DataEntity> entities = findAll();
+        entities.stream().forEach(em::remove);
+    }
 }

@@ -13,4 +13,7 @@ public interface CrudRepository {
     void update(DataEntity e);
 
     void delete(Integer id);
+
+    void truncate();
+
 }
