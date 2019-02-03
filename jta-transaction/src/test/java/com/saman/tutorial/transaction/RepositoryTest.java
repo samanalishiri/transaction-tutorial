@@ -6,6 +6,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,6 +33,7 @@ public class RepositoryTest {
         userRepository.save(DataEntity.create(1, "code_1", "name_1"));
     }
 
+    @Before
     public void truncate() {
         userRepository.delete(1);
     }
@@ -43,8 +45,6 @@ public class RepositoryTest {
         DataEntity user = userRepository.findById(1);
         Assert.assertNotNull(user);
         Assert.assertEquals(new Integer(1), user.getId());
-
-        truncate();
     }
 
 }

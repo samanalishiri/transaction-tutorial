@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 @Stateless
 @Transactional(Transactional.TxType.REQUIRES_NEW)
-public class JpaBatchRepositoryImpl implements JpaBatchRepository {
+public class BatchProcessImpl implements BatchProcess {
 
     private final Logger logger = Logger.getLogger("JpaBatchRepositoryImpl");
 

@@ -27,7 +27,7 @@ public class AcidTest {
     private Repository repository;
 
     @Inject
-    private JpaBatchRepository batchRepository;
+    private BatchProcess batchRepository;
 
     @Deployment
     public static WebArchive createTestArchive() {
@@ -38,7 +38,7 @@ public class AcidTest {
     }
 
     @Before
-    public void setUp() {
+    public void truncate() {
         repository.truncate();
     }
 

@@ -3,6 +3,8 @@ package com.saman.tutorial.transaction;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -15,6 +17,8 @@ import static com.saman.tutorial.transaction.CriteriaUtils.createCriteriaQuery;
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
 @Stateless
+@TransactionManagement(TransactionManagementType.CONTAINER)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class JpaRepositoryImpl implements Repository {
 
     @PersistenceContext(unitName = "transactiontutorial")
@@ -24,15 +28,15 @@ public class JpaRepositoryImpl implements Repository {
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public Integer save(DataEntity e) {
+        em.joinTransaction();
         em.persist(e);
         return e.getId();
     }
 
     public List<DataEntity> findAll() {
-        CriteriaQuery<DataEntity> criteriaQuery = createCriteriaQuery(em, DataEntity.class);
-        return em.createQuery(criteriaQuery.select(criteriaQuery.from(DataEntity.class))).getResultList();
+        CriteriaQuery<DataEntity> cq = createCriteriaQuery(em, DataEntity.class);
+        return em.createQuery(cq.select(cq.from(DataEntity.class))).getResultList();
     }
 
     @Override
@@ -40,8 +44,8 @@ public class JpaRepositoryImpl implements Repository {
         return em.find(DataEntity.class, id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void update(DataEntity e) {
+        em.joinTransaction();
         DataEntity entity = em.find(DataEntity.class, e.getId());
         entity.setCode(e.getCode());
         entity.setName(e.getName());
@@ -55,8 +59,8 @@ public class JpaRepositoryImpl implements Repository {
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void delete(Integer id) {
+        em.joinTransaction();
         em.remove(em.find(DataEntity.class, id));
     }
 
@@ -69,8 +73,8 @@ public class JpaRepositoryImpl implements Repository {
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void truncate() {
+        em.joinTransaction();
         List<DataEntity> entities = findAll();
         entities.stream().forEach(em::remove);
     }
