@@ -48,6 +48,13 @@ public class JpaRepositoryImpl implements Repository {
     }
 
     @Override
+    public synchronized Void synchronizedUpdate(DataEntity e) throws Exception {
+        this.update(e);
+        em.flush();
+        return Void.TYPE.newInstance();
+    }
+
+    @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void delete(Integer id) {
         em.remove(em.find(DataEntity.class, id));

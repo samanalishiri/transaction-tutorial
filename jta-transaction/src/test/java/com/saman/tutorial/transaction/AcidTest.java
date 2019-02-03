@@ -6,6 +6,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,7 +27,7 @@ public class AcidTest {
     private Repository repository;
 
     @Inject
-    private JpaBatchRepository jpaBatchRepository;
+    private JpaBatchRepository batchRepository;
 
     @Deployment
     public static WebArchive createTestArchive() {
@@ -36,15 +37,19 @@ public class AcidTest {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
+    @Before
+    public void setUp() {
+        repository.truncate();
+    }
+
     @Test
     public void atomicityCommitTest() {
-        repository.truncate();
 
         DataEntity entity1 = DataEntity.create(1, "code_1", "name_1");
         DataEntity entity2 = DataEntity.create(2, "code_2", "name_2");
 
         try {
-            jpaBatchRepository.batch(em,
+            batchRepository.batch(em,
                     em -> em.persist(entity1),
                     em -> em.persist(entity2));
         } catch (RuntimeException e) {
@@ -60,10 +65,9 @@ public class AcidTest {
 
     @Test
     public void atomicityRollbackTest() {
-        repository.truncate();
 
         try {
-            jpaBatchRepository.batch(em,
+            batchRepository.batch(em,
                     em -> em.persist(DataEntity.create(1, "code_1", "name_1")),
                     em -> {
                         logger.info("throw exception");
@@ -80,13 +84,12 @@ public class AcidTest {
 
     @Test
     public void failedConsistencyTest() {
-        repository.truncate();
 
         DataEntity entity1 = DataEntity.create(1, "code_1", "name_1");
         DataEntity entity2 = DataEntity.create(2, "code_1", "name_1");
 
         try {
-            jpaBatchRepository.batch(em,
+            batchRepository.batch(em,
                     em -> {
                         em.persist(entity1);
                         em.flush();
@@ -102,5 +105,53 @@ public class AcidTest {
 
         Long numberOfRecord = repository.countAll();
         Assert.assertEquals(new Long(0L), numberOfRecord);
+    }
+
+
+    @Test
+    public void isolationSerializableTest() {
+
+        DataEntity entity = DataEntity.create(1, "code_1", "name_1");
+        repository.save(entity);
+
+        DataEntity update1 = DataEntity.create(1, "code_5", "name_5");
+        DataEntity update2 = DataEntity.create(1, "code_6", "name_6");
+
+
+        try {
+            batchRepository.parallelBatch(
+                    () -> repository.synchronizedUpdate(update1),
+                    () -> repository.synchronizedUpdate(update2)
+            );
+        } catch (RuntimeException e) {
+            logger.info("there was an error in transaction");
+            logger.info(e.getMessage());
+        }
+
+        DataEntity result = repository.findById(update1.getId());
+        logger.info(result.toString());
+    }
+
+    @Test
+    public void durationTest() {
+
+        DataEntity entity = DataEntity.create(1, "code_1", "name_1");
+
+        try {
+            repository.save(entity);
+
+        } catch (RuntimeException e) {
+            logger.info("there was an error in transaction");
+        }
+
+        try {
+            throw new RuntimeException("system shutdown!!!");
+        } catch (RuntimeException e) {
+            logger.info(e.getMessage());
+        }
+
+        DataEntity persistentEntity = repository.findById(1);
+
+        Assert.assertEquals(entity, persistentEntity);
     }
 }
