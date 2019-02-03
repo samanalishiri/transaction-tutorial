@@ -109,14 +109,14 @@ public class AcidTest {
             repository.parallelBatch(connection,
                     c -> {
                         try {
-                            repository.synchronizedUpdateWithCommit(c, model1);
+                            repository.synchronizedUpdate(c, model1);
                         } catch (SQLException e) {
                             logger.error("there was an error in update model-1");
                         }
                     },
                     c -> {
                         try {
-                            repository.synchronizedUpdateWithCommit(c, model2);
+                            repository.synchronizedUpdate(c, model2);
                         } catch (SQLException e) {
                             logger.error("there was an error in update model-2");
                         }

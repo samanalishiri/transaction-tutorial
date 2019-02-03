@@ -279,15 +279,7 @@ public class Repository {
         }
     }
 
-    public synchronized void synchronizedUpdate(Connection connection, DataModel model) {
-        this.update(connection, model);
-    }
-
-    public synchronized void synchronizedSave(Connection connection, DataModel model) {
-        this.save(connection, model);
-    }
-
-    public synchronized void synchronizedUpdateWithCommit(Connection connection, DataModel model) throws SQLException {
+    public synchronized void synchronizedUpdate(Connection connection, DataModel model) throws SQLException {
 
         try {
             this.update(connection, model);
