@@ -4,7 +4,7 @@ import javax.persistence.EntityManager;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-public interface BatchProcess {
+public interface BatchProcessRepository {
 
     void batch(EntityManager em, Consumer<EntityManager>... operations);
 

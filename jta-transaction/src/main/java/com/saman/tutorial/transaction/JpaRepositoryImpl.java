@@ -3,8 +3,6 @@ package com.saman.tutorial.transaction;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -17,7 +15,6 @@ import static com.saman.tutorial.transaction.CriteriaUtils.createCriteriaQuery;
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
 @Stateless
-@TransactionManagement(TransactionManagementType.CONTAINER)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class JpaRepositoryImpl implements Repository {
 

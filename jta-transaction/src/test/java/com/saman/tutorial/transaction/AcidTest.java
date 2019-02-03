@@ -27,7 +27,7 @@ public class AcidTest {
     private Repository repository;
 
     @Inject
-    private BatchProcess batchRepository;
+    private BatchProcessRepository batchRepository;
 
     @Deployment
     public static WebArchive createTestArchive() {
@@ -70,8 +70,7 @@ public class AcidTest {
             batchRepository.batch(em,
                     em -> em.persist(DataEntity.create(1, "code_1", "name_1")),
                     em -> {
-                        logger.info("throw exception");
-                        throw new RuntimeException();
+                        throw new RuntimeException("throw exception");
                     }
             );
         } catch (RuntimeException e) {

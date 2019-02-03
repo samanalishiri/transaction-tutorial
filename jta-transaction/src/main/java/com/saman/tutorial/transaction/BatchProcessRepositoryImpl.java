@@ -2,17 +2,18 @@ package com.saman.tutorial.transaction;
 
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 @Stateless
-@Transactional(Transactional.TxType.REQUIRES_NEW)
-public class BatchProcessImpl implements BatchProcess {
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+public class BatchProcessRepositoryImpl implements BatchProcessRepository {
 
     private final Logger logger = Logger.getLogger("JpaBatchRepositoryImpl");
 
