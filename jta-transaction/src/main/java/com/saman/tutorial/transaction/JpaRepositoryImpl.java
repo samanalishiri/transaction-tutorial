@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.saman.tutorial.transaction.CriteriaUtils.createCriteriaQuery;
@@ -15,6 +16,7 @@ import static com.saman.tutorial.transaction.CriteriaUtils.createCriteriaQuery;
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
 @Stateless
+@Transactional
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class JpaRepositoryImpl implements Repository {
 
