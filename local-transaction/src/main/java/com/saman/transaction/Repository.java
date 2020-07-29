@@ -1,325 +1,257 @@
 package com.saman.transaction;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.vavr.control.Try;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+
+import static com.saman.transaction.CollectionTransformer.transform;
+import static com.saman.transaction.Model.CODE_INDEX;
+import static com.saman.transaction.Model.ID_INDEX;
+import static com.saman.transaction.Model.NAME_INDEX;
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
-public class Repository {
+public final class Repository extends AbstractRepository {
 
     public static final Repository INSTANCE = new Repository();
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    public static final String QUERY_INSERT = "INSERT INTO model_table (id, code, name) values (?, ?, ?)";
 
-    private final Transformer<DataModel> transformer = new DataModelTransformer();
+    public static final String QUERY_FIND_BY_ID = "SELECT * FROM model_table tbl WHERE tbl.id = ?";
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    public static final String QUERY_UPDATE = "UPDATE model_table SET code = ?, name = ? WHERE id = ?";
 
-    protected Repository() {
+    public static final String QUERY_DELETE_BY_ID = "DELETE FROM model_table WHERE id = ?";
+
+    public static final String QUERY_COUNT_ID = "SELECT COUNT(id) AS count_id FROM model_table tbl";
+
+    public static final String QUERY_FIND_ALL_ID = "SELECT id FROM model_table tbl";
+
+    public static final String QUERY_FIND_BY_CODE = "SELECT * FROM model_table tbl WHERE tbl.code = ?";
+
+    public static final String QUERY_FIND_BY_NAME = "SELECT * FROM model_table tbl WHERE tbl.name = ?";
+
+    private final Function<ResultSet, Model> transformer = new ModelTransformer();
+
+    private Repository() {
     }
 
-    public void initData() throws SQLException {
-        Connection connection = DataSourceHelper.INSTANCE.get();
-        connection.setAutoCommit(false);
-
-        DataModel model1 = DataModel.create(1, "code_1", "name_1");
-        DataModel model2 = DataModel.create(2, "code_2", "name_2");
-        DataModel model3 = DataModel.create(3, "code_3", "name_3");
-
-        save(connection, model1);
-        save(connection, model2);
-        save(connection, model3);
-
-        connection.commit();
-        connection.close();
-    }
-
-    public void trunk() {
-        Connection connection = DataSourceHelper.INSTANCE.get();
+    public int save(Connection connection, Model model) {
+        if (model.getId() == 0)
+            model = Model.persistenceBuilder(Sequence.nextModelId()).of(model).build();
 
         PreparedStatement statement = null;
         try {
-            statement = connection.prepareStatement("DELETE FROM local_transaction_test WHERE id in (1, 2, 3)");
-            statement.execute();
-            logger.info("delete {1, 2, 3}");
+            statement = connection.prepareStatement(QUERY_INSERT);
+            statement.setInt(ID_INDEX, model.getId());
+            statement.setString(CODE_INDEX, model.getCode());
+            statement.setString(NAME_INDEX, model.getName());
+
+            statement.executeUpdate();
+            logSql(QUERY_INSERT, model);
 
         } catch (SQLException e) {
-            logger.error("can't execute trunk table");
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
+            logException("save", e);
+            rollback(connection, e);
 
         } finally {
-            closeStatement(statement);
+            close(statement);
         }
+
+        return model.getId();
     }
 
-    public int countAll() {
-        Connection connection = DataSourceHelper.INSTANCE.get();
+    public Optional<Model> findById(int id) {
 
+        Connection connection = DataSource.INSTANCE.getConnection();
         PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement("SELECT COUNT(ID) AS count_id FROM local_transaction_test tbl");
-            ResultSet data = statement.executeQuery();
-
-            if (data.next()) {
-                int count_id = data.getInt("count_id");
-                logger.info("count all");
-                return count_id;
-            }
-
-
-        } catch (SQLException e) {
-            logger.error("can't execute count statement");
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
-
-        } finally {
-            closeStatement(statement);
-        }
-
-        return 0;
-    }
-
-    public void resetData() throws SQLException {
-        Connection connection = DataSourceHelper.INSTANCE.get();
-        connection.setAutoCommit(false);
-
-        DataModel model1 = DataModel.create(1, "code_1", "name_1");
-        DataModel model2 = DataModel.create(2, "code_2", "name_2");
-        DataModel model3 = DataModel.create(3, "code_3", "name_3");
-
-        update(connection, model1);
-        update(connection, model2);
-        update(connection, model3);
-
-        connection.commit();
-        connection.close();
-    }
-
-    public void batch(Connection connection, Consumer<Connection>... consumer) throws SQLException {
+        ResultSet tuples = null;
 
         try {
-            connection.setAutoCommit(false);
-            Arrays.stream(consumer).forEach(c -> c.accept(connection));
-            connection.commit();
-            logger.info("commit transaction");
-
-        } catch (SQLException e) {
-            logger.error("rollback transaction");
-            logger.error(e.getMessage());
-            connection.rollback();
-            throw e;
-
-        } finally {
-            logger.info("connection.close!");
-            connection.close();
-        }
-    }
-
-    public void parallelBatch(Connection connection, Consumer<Connection>... consumer) throws SQLException, InterruptedException {
-
-        try {
-            connection.setAutoCommit(false);
-            Arrays.stream(consumer).forEach(c -> executor.execute(() -> c.accept(connection)));
-
-        } catch (SQLException e) {
-            logger.error("rollback transaction");
-            logger.error(e.getMessage());
-            connection.rollback();
-            throw e;
-
-        } finally {
-            executor.shutdown();
-            while (!executor.isTerminated()) {
-                logger.info("waiting for termination");
-            }
-            connection.commit();
-            logger.info("commit transaction");
-            connection.close();
-            logger.info("connection.close!");
-        }
-    }
-
-    public DataModel findById(int id) {
-
-        Connection connection = DataSourceHelper.INSTANCE.get();
-
-        try {
-            PreparedStatement statement = connection.prepareStatement(
-                    "SELECT \n" +
-                            "    *\n" +
-                            "FROM\n" +
-                            "    local_transaction_test tbl\n" +
-                            "WHERE\n" +
-                            "    tbl.id = ?");
-
+            statement = connection.prepareStatement(QUERY_FIND_BY_ID);
             statement.setInt(1, id);
-            ResultSet data = statement.executeQuery();
 
+            tuples = statement.executeQuery();
+            logSql(QUERY_FIND_BY_ID, id);
 
-            if (data.next()) {
-                DataModel model = transformer.transform(data);
-                logger.info(model.toString());
-                return model;
-            }
+            if (tuples.next())
+                return ofNullable(transformer.apply(tuples));
 
         } catch (SQLException e) {
-            logger.error("can't find DataModel{id=" + id + "}");
-            logger.error(e.getMessage());
+            logException("findById", e);
+
+        } finally {
+            close(tuples, statement, connection);
         }
 
-        return new DataModel();
+        return empty();
     }
 
-    public DataModel findByCode(String code) {
-
-        Connection connection = DataSourceHelper.INSTANCE.get();
-
-        try {
-            PreparedStatement statement = connection.prepareStatement(
-                    "SELECT \n" +
-                            "    *\n" +
-                            "FROM\n" +
-                            "    local_transaction_test tbl\n" +
-                            "WHERE\n" +
-                            "    tbl.code = ?");
-
-            statement.setString(1, code);
-            ResultSet data = statement.executeQuery();
-
-            if (data.next()) {
-                DataModel model = transformer.transform(data);
-                logger.info(model.toString());
-                return model;
-            }
-
-        } catch (SQLException e) {
-            logger.error("can't find DataModel{code=" + code + "}");
-            logger.error(e.getMessage());
-        }
-
-        return new DataModel();
-    }
-
-    public void update(Connection connection, DataModel model) {
+    public void update(Connection connection, Model model) {
         PreparedStatement statement = null;
         try {
-            statement = connection.prepareStatement(
-                    "UPDATE local_transaction_test \n" +
-                            "SET \n" +
-                            "    code = ?,\n" +
-                            "    name = ?\n" +
-                            "WHERE\n" +
-                            "    id = ?;");
-
+            statement = connection.prepareStatement(QUERY_UPDATE);
             statement.setString(1, model.getCode());
             statement.setString(2, model.getName());
             statement.setInt(3, model.getId());
+
             statement.executeUpdate();
-            logger.info(model.toString());
+            logSql(QUERY_UPDATE, model);
 
         } catch (SQLException e) {
-            logger.error("can't execute update statement");
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
+            logException("update", e);
+            rollback(connection, e);
 
         } finally {
-            closeStatement(statement);
-        }
-    }
-
-    public void save(Connection connection, DataModel model) {
-        PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement("INSERT INTO local_transaction_test (id, code, name) values (?, ?, ?)");
-
-            statement.setInt(1, model.getId());
-            statement.setString(2, model.getCode());
-            statement.setString(3, model.getName());
-            statement.executeUpdate();
-            logger.info(model.toString());
-
-        } catch (SQLException e) {
-            logger.error("can't execute insert statement");
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
-
-        } finally {
-            closeStatement(statement);
+            close(statement);
         }
     }
 
     public void deleteById(Connection connection, int id) {
         PreparedStatement statement = null;
         try {
-            statement = connection.prepareStatement("DELETE FROM local_transaction_test WHERE id = ?");
-
+            statement = connection.prepareStatement(QUERY_DELETE_BY_ID);
             statement.setInt(1, id);
             statement.execute();
-            logger.info("delete {" + id + "}");
+            logSql(QUERY_DELETE_BY_ID, id);
 
         } catch (SQLException e) {
-            logger.error("can't execute insert statement");
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
+            logException("deleteById", e);
+            rollback(connection, e);
 
         } finally {
-            closeStatement(statement);
+            close(statement);
         }
     }
 
-    public synchronized void synchronizedUpdate(Connection connection, DataModel model) throws SQLException {
+    public int countAll() {
+        Connection connection = DataSource.INSTANCE.getConnection();
+        PreparedStatement statement = null;
+        ResultSet tuples = null;
+        try {
+            statement = connection.prepareStatement(QUERY_COUNT_ID);
+            tuples = statement.executeQuery();
+
+            logSql(QUERY_COUNT_ID, "none");
+
+            if (tuples.next())
+                return tuples.getInt("count_id");
+
+        } catch (SQLException e) {
+            logException("countAll", e);
+
+        } finally {
+            close(tuples, statement, connection);
+        }
+
+        return 0;
+    }
+
+    public List<Integer> getIdentities() {
+        Connection connection = DataSource.INSTANCE.getConnection();
+        PreparedStatement statement = null;
+        ResultSet tuples = null;
+
+        try {
+            statement = connection.prepareStatement(QUERY_FIND_ALL_ID);
+            tuples = statement.executeQuery();
+            logSql(QUERY_FIND_ALL_ID, "none");
+
+            return transform(tuples, tuple -> Try.of(() -> tuple.getInt("id")).get());
+
+        } catch (SQLException e) {
+            logException("getIdentities", e);
+
+        } finally {
+            close(tuples, statement, connection);
+        }
+
+        return new ArrayList<>();
+    }
+
+    public Optional<Model> findByCode(String code) {
+
+        Connection connection = DataSource.INSTANCE.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(QUERY_FIND_BY_CODE);
+            statement.setString(1, code);
+
+            ResultSet data = statement.executeQuery();
+            logSql(QUERY_FIND_BY_CODE, code);
+
+            if (data.next())
+                return ofNullable(transformer.apply(data));
+
+        } catch (SQLException e) {
+            logException("findByCode", e);
+        }
+
+        return empty();
+    }
+
+    public Optional<Model> findByName(String name) {
+
+        Connection connection = DataSource.INSTANCE.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(QUERY_FIND_BY_NAME);
+            statement.setString(1, name);
+
+            ResultSet data = statement.executeQuery();
+            logSql(QUERY_FIND_BY_CODE, name);
+
+            if (data.next())
+                return ofNullable(transformer.apply(data));
+
+        } catch (SQLException e) {
+            logException("findByName", e);
+        }
+
+        return empty();
+    }
+
+    public Optional<Model> saveAndCommit(Connection connection, Model model) {
+
+        try {
+            int id = this.save(connection, model);
+            if (!connection.getAutoCommit())
+                connection.commit();
+            logger.info("commit transaction");
+            return Optional.ofNullable(Model.persistenceBuilder(id).of(model).build());
+
+        } catch (SQLException e) {
+            logException("synchronizedSave", e);
+            rollback(connection, e);
+        }
+
+        return empty();
+    }
+
+    public Optional<Model> updateAndCommit(Connection connection, Model model) {
 
         try {
             this.update(connection, model);
-            connection.commit();
+            if (!connection.getAutoCommit())
+                connection.commit();
             logger.info("commit transaction");
+            return findById(model.getId());
 
         } catch (SQLException e) {
-            logger.error("rollback transaction");
-            logger.error(e.getMessage());
-            connection.rollback();
-            throw e;
-
+            logException("synchronizedUpdate", e);
+            rollback(connection, e);
         }
+        return empty();
     }
 
-    public synchronized void synchronizedSaveWithCommit(Connection connection, DataModel model) throws SQLException {
-
-        try {
-            this.save(connection, model);
-            connection.commit();
-            logger.info("commit transaction");
-
-        } catch (SQLException e) {
-            logger.error("rollback transaction");
-            logger.error(e.getMessage());
-            connection.rollback();
-            throw e;
-
-        }
-    }
-
-    private void closeStatement(PreparedStatement statement) {
-        try {
-            if (Objects.nonNull(statement)) {
-                statement.close();
-            }
-
-        } catch (SQLException e) {
-            logger.error("can't close statement");
-            throw new RuntimeException(e);
-        }
-    }
 }

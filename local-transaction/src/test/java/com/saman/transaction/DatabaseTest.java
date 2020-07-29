@@ -1,41 +1,51 @@
 package com.saman.transaction;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
-@RunWith(JUnit4.class)
+
+@DisplayName("Database Test")
 public class DatabaseTest {
-    private final Logger logger = LoggerFactory.getLogger("AppTest");
 
-    private Repository repository = Repository.INSTANCE;
+    private final Logger logger = LoggerFactory.getLogger("DatabaseTest");
 
-    @Before
-    public void setUp() throws Exception {
-        Assert.assertNotNull(repository);
-    }
+    private final Repository repository = Repository.INSTANCE;
 
-    @After
-    public void finish() throws Exception {
-        repository.initData();
+    private final ModelTableMockData mockData = ModelTableMockData.INSTANCE;
+
+    @BeforeEach
+    public void setUp() {
+        assertNotNull(repository);
     }
 
     @Test
-    public void trunkTableTest() throws SQLException {
-        repository.trunk();
-
+    @DisplayName("Initial 'MODEL_TABLE' with stub data")
+    @Order(1)
+    public void insertModelTable_GivenStubData_ThenInsertInTheTable() {
+        mockData.init();
         int count = repository.countAll();
-        Assert.assertEquals(0, count);
+        assertNotNull(count);
+        assertEquals(3, count);
+        logger.info("count = " + count);
+    }
+
+    @Test
+    @DisplayName("Trunk 'MODEL_TABLE'")
+    @Order(2)
+    public void trunkModelTable_WhenCallTrunkFunction_ThenRemoveAllTuples() {
+        ModelTableMockData.INSTANCE.trunk();
+        int count = repository.countAll();
+        assertEquals(0, count);
         logger.info("count = " + count);
     }
 }
