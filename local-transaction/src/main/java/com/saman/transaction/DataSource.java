@@ -3,11 +3,8 @@ package com.saman.transaction;
 
 import io.vavr.control.Try;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * @author Saman Alishiri, samanalishiri@gmail.com
@@ -36,6 +33,6 @@ public class DataSource {
     }
 
     public Connection getConnection() {
-       return Try.of(() -> dataSource.getConnection()).getOrNull();
+        return Try.of(() -> dataSource.getConnection()).getOrNull();
     }
 }

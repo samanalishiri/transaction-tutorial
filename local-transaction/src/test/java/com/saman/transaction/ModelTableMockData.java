@@ -51,7 +51,7 @@ public class ModelTableMockData {
     public void trunk() {
         List<Integer> identities = repository.getIdentities();
 
-        if(isNull(identities) || identities.isEmpty())
+        if (isNull(identities) || identities.isEmpty())
             return;
 
         String identitiesString = join(",", identities.stream()

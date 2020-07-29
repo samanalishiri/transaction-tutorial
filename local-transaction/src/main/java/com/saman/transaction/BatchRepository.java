@@ -1,8 +1,6 @@
 package com.saman.transaction;
 
 import io.vavr.control.Try;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * @author Saman Alishiri, samanalishiri@gmail.com
  */
-public final class BatchRepository extends AbstractRepository{
+public final class BatchRepository extends AbstractRepository {
 
     public static final BatchRepository INSTANCE = new BatchRepository();
 
@@ -35,8 +33,8 @@ public final class BatchRepository extends AbstractRepository{
             logger.info("commit transaction!");
 
         } catch (SQLException e) {
-          logException("batch", e);
-          rollback(connection, e);
+            logException("batch", e);
+            rollback(connection, e);
 
         } finally {
             logger.info("connection close!");
